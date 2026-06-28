@@ -19,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.blueridge.parkwaynav.places.Suggestion
@@ -42,7 +43,7 @@ fun AddressField(
             onValueChange = { onQueryChange(it) },
             modifier = Modifier
                 .fillMaxWidth()
-                .onFocusLike(onFocus),
+                .onFocusChanged { state -> if (state.isFocused) onFocus() },
             singleLine = true,
             placeholder = {
                 Text(if (isCurrentLocation) "📍 Current location" else hint)
@@ -114,11 +115,3 @@ private fun SuggestionRow(s: Suggestion, onClick: () -> Unit) {
         }
     }
 }
-
-/** Small helper to trigger [onFocus] when this field gains focus. */
-private fun Modifier.onFocusLike(onFocus: () -> Unit): Modifier =
-    this.then(
-        androidx.compose.ui.focus.onFocusChanged { state ->
-            if (state.isFocused) onFocus()
-        }
-    )
