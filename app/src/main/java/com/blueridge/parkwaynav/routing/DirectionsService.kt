@@ -47,11 +47,26 @@ class DirectionsService(private val apiKey: String) {
         if (points.size < 2 || apiKey.isBlank()) return points
         val out = ArrayList<LatLng>()
         var i = 0
-        // Directions allows origin + up to 23 intermediate waypoints + destination per request.
+        // Use SMALL chunks (origin + a few waypoints): with closely-spaced waypoints the road
+        // follower can't wander far between them. Directions allows up to 23 waypoints, but fewer
+        // keeps the path tight to the Parkway.
+        val chunk = 6
         while (i < points.size - 1) {
-            val end = minOf(i + 24, points.size - 1)
+            val end = minOf(i + chunk, points.size - 1)
+            val chunkPoints = points.subList(i, end + 1)
             val waypoints = points.subList(i + 1, end)
-            val seg = routeVia(points[i], points[end], waypoints).polyline
+            val result = routeVia(points[i], points[end], waypoints)
+
+            // Guard against the road follower taking a faster highway detour between sparse
+            // anchors: if the returned distance is far longer than the straight anchor path,
+            // keep the straight anchor line for this chunk instead of a bonkers loop.
+            val straightMiles = (0 until chunkPoints.size - 1)
+                .sumOf { GeoUtils.metersToMiles(GeoUtils.distance(chunkPoints[it], chunkPoints[it + 1])) }
+            val seg = if (result.distanceMiles > 0 && result.distanceMiles > 1.8 * straightMiles + 1.0) {
+                chunkPoints // detour rejected
+            } else {
+                result.polyline.ifEmpty { chunkPoints }
+            }
             if (out.isEmpty()) out.addAll(seg) else out.addAll(seg.drop(1))
             i = end
         }
@@ -72,8 +87,10 @@ class DirectionsService(private val apiKey: String) {
                 append("&destination=${destination.latitude},${destination.longitude}")
                 if (waypoints.isNotEmpty()) {
                     append("&waypoints=")
-                    append(waypoints.joinToString("|") { "${it.latitude},${it.longitude}" })
+                    append(waypoints.joinToString("%7C") { "${it.latitude},${it.longitude}" })
                 }
+                // Avoid interstates/freeways so the Parkway line can't hop onto a parallel highway.
+                append("&avoid=highways%7Cferries")
                 append("&mode=driving")
                 append("&key=${URLEncoder.encode(apiKey, "UTF-8")}")
             }
