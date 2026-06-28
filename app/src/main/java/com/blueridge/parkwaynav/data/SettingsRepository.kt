@@ -41,7 +41,9 @@ data class AppSettings(
     val backupFolderUri: String = "",
     val appRemovalLock: Boolean = false,
     // Restore prompt bookkeeping: was location enabled when this backup was made?
-    val locationWasEnabled: Boolean = false
+    val locationWasEnabled: Boolean = false,
+    // Whether the first-run onboarding has been shown.
+    val onboarded: Boolean = false
 )
 
 private val Context.dataStore by preferencesDataStore(name = "brp_settings")
@@ -69,6 +71,7 @@ class SettingsRepository(private val context: Context) {
         val BACKUP_FOLDER = stringPreferencesKey("backup_folder_uri")
         val APP_REMOVAL_LOCK = booleanPreferencesKey("app_removal_lock")
         val LOCATION_WAS_ENABLED = booleanPreferencesKey("location_was_enabled")
+        val ONBOARDED = booleanPreferencesKey("onboarded")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { it.toSettings() }
@@ -95,7 +98,8 @@ class SettingsRepository(private val context: Context) {
         autoBackup = this[Keys.AUTO_BACKUP] ?: false,
         backupFolderUri = this[Keys.BACKUP_FOLDER] ?: "",
         appRemovalLock = this[Keys.APP_REMOVAL_LOCK] ?: false,
-        locationWasEnabled = this[Keys.LOCATION_WAS_ENABLED] ?: false
+        locationWasEnabled = this[Keys.LOCATION_WAS_ENABLED] ?: false,
+        onboarded = this[Keys.ONBOARDED] ?: false
     )
 
     suspend fun update(transform: (AppSettings) -> AppSettings) {
@@ -121,6 +125,7 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.BACKUP_FOLDER] = next.backupFolderUri
             prefs[Keys.APP_REMOVAL_LOCK] = next.appRemovalLock
             prefs[Keys.LOCATION_WAS_ENABLED] = next.locationWasEnabled
+            prefs[Keys.ONBOARDED] = next.onboarded
         }
     }
 

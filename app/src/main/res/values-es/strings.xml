@@ -13,6 +13,18 @@
     <string name="show_full_parkway">Ver toda la Parkway</string>
     <string name="hide_full_parkway">Ocultar vista de la Parkway</string>
     <string name="my_location">Mi ubicación</string>
+    <string name="nearest_entrance">Llévame a la entrada más cercana</string>
+    <string name="north_up">Norte arriba</string>
+    <string name="heading_up">Dirección arriba</string>
+    <string name="full_route">Ruta completa</string>
+    <string name="quick_settings">Ajustes rápidos</string>
+    <string name="menu">Menú</string>
+    <string name="open_settings">Abrir ajustes</string>
+
+    <string name="onboarding_title">Bienvenido a Blue Ridge Pkwy Nav</string>
+    <string name="onboarding_body">Esta app te mantiene en la Blue Ridge Parkway lo más posible y solo te indica salir en el cruce más cercano a tu destino.\n\nPrivacidad: el desarrollador no recopila datos — todo permanece en tu dispositivo.\n\nSobre la señal: la mayor parte de la Parkway tiene poca o ninguna cobertura. Los datos de la Parkway en esta app (ruta, miradores, cruces, millas, voz) funcionan sin conexión una vez instalada. Sin embargo, las imágenes del mapa provienen de Google y la app no puede descargarlas; para imágenes sin conexión, descarga la región de Asheville/Blue Ridge en la app de Google Maps antes de tu viaje.</string>
+    <string name="onboarding_enable_location">Activar ubicación ahora</string>
+    <string name="onboarding_got_it">Entendido</string>
     <string name="settings">Configuración</string>
     <string name="about">Acerca de</string>
 

@@ -14,6 +14,19 @@
     <string name="show_full_parkway">Show entire Parkway</string>
     <string name="hide_full_parkway">Hide Parkway overview</string>
     <string name="my_location">My location</string>
+    <string name="nearest_entrance">Direct me to the nearest entrance</string>
+    <string name="north_up">North up</string>
+    <string name="heading_up">Heading up</string>
+    <string name="full_route">Full route</string>
+    <string name="quick_settings">Quick settings</string>
+    <string name="menu">Menu</string>
+    <string name="open_settings">Open settings</string>
+
+    <!-- First-run onboarding -->
+    <string name="onboarding_title">Welcome to Blue Ridge Pkwy Nav</string>
+    <string name="onboarding_body">This app keeps you on the Blue Ridge Parkway as long as possible and only routes you off at the junction nearest your destination.\n\nPrivacy: the developer collects no data — everything stays on your device.\n\nHeads up on signal: most of the Parkway has little or no cell service. The Parkway data in this app (route, overlooks, junctions, mileposts, voice) works fully offline once installed. Live map tiles, however, come from Google and can\'t be pre-downloaded by the app — for offline map imagery, download the Asheville/Blue Ridge region inside the Google Maps app before your trip.</string>
+    <string name="onboarding_enable_location">Enable location now</string>
+    <string name="onboarding_got_it">Got it</string>
     <string name="settings">Settings</string>
     <string name="about">About</string>
 

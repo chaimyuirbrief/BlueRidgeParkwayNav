@@ -16,16 +16,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Route
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -65,6 +70,8 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
@@ -80,6 +87,7 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
     val savedRoutes by app.savedRoutes.collectAsState()
     val busy by app.busy.collectAsState()
     val parkwayOverview by app.parkwayOverview.collectAsState()
+    val settings by app.settings.collectAsState()
 
     var hasLocation by remember {
         mutableStateOf(
@@ -127,6 +135,38 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
                     points = parkwayOverview,
                     color = MaterialTheme.colorScheme.tertiary,
                     width = 12f
+                )
+            }
+            // All access junctions (blue) and overlooks/attractions (orange/green) shown
+            // while browsing. Tap a marker's info window to route there.
+            app.brp.junctions.forEach { j ->
+                Marker(
+                    state = MarkerState(position = j.latLng),
+                    title = j.name,
+                    snippet = "MP ${j.mile} • ${j.highway}",
+                    icon = com.google.android.gms.maps.model.BitmapDescriptorFactory
+                        .defaultMarker(com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_AZURE),
+                    onInfoWindowClick = {
+                        app.useCurrentLocation(0)
+                        app.setDestinationPoint(j.name, j.latLng)
+                        app.computeRoute { ok -> if (ok) nav.navigate(Routes.PREVIEW) }
+                    }
+                )
+            }
+            app.brp.pois.forEach { p ->
+                val hue = if (p.type == "overlook")
+                    com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_ORANGE
+                else com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_GREEN
+                Marker(
+                    state = MarkerState(position = p.latLng),
+                    title = p.name,
+                    snippet = "MP ${p.mile} • ${p.type.replace('_', ' ')}",
+                    icon = com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hue),
+                    onInfoWindowClick = {
+                        app.useCurrentLocation(0)
+                        app.setDestinationPoint(p.name, p.latLng)
+                        app.computeRoute { ok -> if (ok) nav.navigate(Routes.PREVIEW) }
+                    }
                 )
             }
         }
@@ -203,6 +243,18 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
                         OutlinedButton(onClick = { nav.navigate(Routes.PLANNER) }) {
                             Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.plan_multi_stop))
                         }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    OutlinedButton(
+                        onClick = {
+                            locationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                            app.routeToNearestEntrance { ok -> if (ok) nav.navigate(Routes.PREVIEW) }
+                        },
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Filled.Explore, contentDescription = null)
+                        Text("  " + stringResource(R.string.nearest_entrance))
                     }
                 }
             }
@@ -309,5 +361,31 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
                 item { Spacer(Modifier.height(24.dp)) }
             }
         }
+    }
+
+    // First-run onboarding (offline + privacy + location).
+    if (!settings.onboarded) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text(stringResource(R.string.onboarding_title)) },
+            text = {
+                androidx.compose.foundation.layout.Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState())
+                ) {
+                    Text(stringResource(R.string.onboarding_body))
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    app.markOnboarded()
+                    locationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }) { Text(stringResource(R.string.onboarding_enable_location)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { app.markOnboarded() }) {
+                    Text(stringResource(R.string.onboarding_got_it))
+                }
+            }
+        )
     }
 }

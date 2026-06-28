@@ -62,7 +62,7 @@ fun AppNavHost(app: MainViewModel) {
         composable(Routes.HOME) { HomeScreen(app, navController) }
         composable(Routes.PLANNER) { RoutePlannerScreen(app, navController) }
         composable(Routes.PREVIEW) { RoutePreviewScreen(app, navController) }
-        composable(Routes.NAVIGATION) { NavigationScreen(navController) }
+        composable(Routes.NAVIGATION) { NavigationScreen(app, navController) }
         composable(Routes.OVERLOOKS) { OverlooksScreen(app, navController) }
         composable(Routes.SETTINGS) { SettingsScreen(app, navController) }
         composable(Routes.ABOUT) { AboutScreen(navController) }

@@ -177,6 +177,36 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         _stops.value = _stops.value.toMutableList().also { it.removeAt(index) }
     }
 
+    /** Routes from the user's current location to the closest Parkway access junction. */
+    fun routeToNearestEntrance(onDone: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            val here = locationEngine.lastLocation()?.let { LatLng(it.latitude, it.longitude) }
+            if (here == null) {
+                _message.value = "Enable location to find the nearest entrance."
+                onDone(false); return@launch
+            }
+            val nearest = brp.junctions.minByOrNull {
+                com.blueridge.parkwaynav.routing.GeoUtils.distance(it.latLng, here)
+            }
+            if (nearest == null) { onDone(false); return@launch }
+            _stops.value = listOf(
+                PlannerStop(useCurrentLocation = true),
+                PlannerStop(query = "${nearest.name} (entrance)", resolved = nearest.latLng)
+            )
+            computeRoute(onDone)
+        }
+    }
+
+    /** Sets a tapped map point (overlook/junction) as the destination. */
+    fun setDestinationPoint(label: String, latLng: LatLng) {
+        val list = _stops.value.toMutableList()
+        val dest = PlannerStop(query = label, resolved = latLng, useCurrentLocation = false)
+        if (list.size >= 2) list[list.size - 1] = dest else list.add(dest)
+        _stops.value = list
+    }
+
+    fun markOnboarded() { updateSettings { it.copy(onboarded = true) } }
+
     fun pickPoiAsDestination(poi: com.blueridge.parkwaynav.data.Poi) {
         val list = _stops.value.toMutableList()
         val dest = PlannerStop(
