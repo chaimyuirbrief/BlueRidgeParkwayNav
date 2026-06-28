@@ -1,0 +1,129 @@
+<resources>
+    <string name="app_name">Parkway Nav</string>
+
+    <!-- Home -->
+    <string name="home_title">Blue Ridge Parkway Nav</string>
+    <string name="from_hint">From (current location)</string>
+    <string name="to_hint">To</string>
+    <string name="use_current_location">Use current location</string>
+    <string name="search_route">Get directions</string>
+    <string name="plan_multi_stop">Plan route with multiple stops</string>
+    <string name="saved_routes">Saved routes</string>
+    <string name="no_saved_routes">No saved routes yet</string>
+    <string name="overlooks_and_pois">Overlooks &amp; attractions</string>
+    <string name="settings">Settings</string>
+    <string name="about">About</string>
+
+    <!-- Route planner -->
+    <string name="route_planner">Route planner</string>
+    <string name="add_stop">Add stop</string>
+    <string name="start_navigation">Start navigation</string>
+    <string name="save_route">Save route</string>
+    <string name="save_to_home_screen">Add to home screen</string>
+    <string name="route_name_hint">Route name</string>
+    <string name="stops">Stops</string>
+    <string name="stay_on_parkway">Keep me on the Parkway as long as possible</string>
+    <string name="exit_at_junction">Exit at %1$s (MP %2$s)</string>
+    <string name="continue_on_parkway">Continue on the Blue Ridge Parkway</string>
+
+    <!-- Navigation -->
+    <string name="navigation">Navigation</string>
+    <string name="toggle_voice">Voice guidance</string>
+    <string name="current_speed">Speed</string>
+    <string name="speed_unit_mph">mph</string>
+    <string name="mile_marker">Milepost</string>
+    <string name="zip_code">ZIP</string>
+    <string name="end_navigation">End</string>
+    <string name="recenter">Re-center</string>
+    <string name="arriving">Arriving at destination</string>
+    <string name="off_parkway">Off Parkway</string>
+
+    <!-- Settings: groups -->
+    <string name="settings_general">General</string>
+    <string name="settings_navigation">Navigation</string>
+    <string name="settings_voice_sound">Voice &amp; sound</string>
+    <string name="settings_backup_restore">Backup &amp; restore</string>
+    <string name="settings_about">About</string>
+
+    <!-- General -->
+    <string name="appearance">Appearance</string>
+    <string name="appearance_light">Light</string>
+    <string name="appearance_dark">Dark</string>
+    <string name="appearance_system">System</string>
+    <string name="time_format">Time format</string>
+    <string name="time_24h">Use 24-hour time</string>
+    <string name="language">Display language</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español (Spanish)</string>
+    <string name="keep_screen_on">Keep screen on</string>
+    <string name="keep_screen_on_ignore">Ignore (let device decide)</string>
+
+    <!-- Navigation settings -->
+    <string name="battery_optimization">Battery optimization</string>
+    <string name="battery_optimization_desc">Allow the app to ignore battery optimizations so navigation is not interrupted.</string>
+    <string name="run_in_background">Run in background</string>
+    <string name="run_in_background_desc">Keep guiding you when the app is not in the foreground.</string>
+    <string name="pip_mode">Picture-in-picture</string>
+    <string name="pip_mode_desc">Shrink navigation into a floating window when you leave the app.</string>
+
+    <!-- Voice & sound -->
+    <string name="voice_type">Voice type</string>
+    <string name="voice_male">Male</string>
+    <string name="voice_female">Female</string>
+    <string name="voice_default">Device default</string>
+    <string name="speaking_speed">Speaking speed</string>
+    <string name="play_over_bluetooth">Play over Bluetooth</string>
+    <string name="play_during_call">Play during phone calls</string>
+    <string name="mute_on_open">Mute app on open</string>
+    <string name="set_volume_on_open">Set volume on open</string>
+    <string name="volume">Volume</string>
+    <string name="test_voice">Test voice</string>
+    <string name="voice_test_phrase">In one mile, continue on the Blue Ridge Parkway.</string>
+
+    <!-- Backup & restore -->
+    <string name="backup_settings">Back up settings</string>
+    <string name="restore_settings">Restore settings</string>
+    <string name="auto_backup">Auto backup</string>
+    <string name="auto_backup_desc">Automatically save a backup to a folder you choose whenever settings change.</string>
+    <string name="choose_backup_folder">Choose backup folder</string>
+    <string name="backup_folder">Backup folder</string>
+    <string name="backup_folder_none">No folder selected</string>
+    <string name="enable_device_admin">Enable device protection (device admin)</string>
+    <string name="enable_device_admin_desc">Turn on device admin so the app cannot be removed accidentally before you back up.</string>
+    <string name="app_enable_lock">Enable app removal lock</string>
+    <string name="app_enable_lock_desc">A reminder lock so you remember to back up before uninstalling.</string>
+    <string name="uninstall_app">Uninstall app</string>
+    <string name="uninstall_warning_title">Back up before you uninstall</string>
+    <string name="uninstall_warning_msg">Uninstalling removes all of your settings and saved routes from this device. Have you backed up your settings? Continue to uninstall? Device admin (if enabled) will be turned off automatically.</string>
+    <string name="uninstall_continue">Back up first</string>
+    <string name="uninstall_anyway">Uninstall anyway</string>
+    <string name="cancel">Cancel</string>
+    <string name="backup_success">Backup saved</string>
+    <string name="backup_failed">Backup failed</string>
+    <string name="restore_success">Settings restored</string>
+    <string name="restore_failed">Restore failed</string>
+
+    <!-- Restore location prompt -->
+    <string name="restore_location_title">Re-enable location?</string>
+    <string name="restore_location_msg">Your restored settings used location. Enable location access now so navigation works?</string>
+    <string name="enable_location">Enable location</string>
+    <string name="not_now">Not now</string>
+
+    <!-- About -->
+    <string name="about_title">Why this app exists</string>
+    <string name="about_body">Standard map apps route you off the Blue Ridge Parkway at the first opportunity — onto faster highways — even when you want to enjoy the drive and stay on the Parkway as long as possible. Parkway Nav is built for Parkway travelers: it keeps you on the Blue Ridge Parkway and only directs you off at the junction nearest your destination.\n\nYour privacy is paramount. The developer does NOT collect any data. There are no analytics, no trackers, and no accounts. Everything — your routes, your settings, your location — stays on your device and is never sent anywhere unless you explicitly export a backup to a folder you choose.\n\nOverlook, visitor center, and attraction information is sourced from the National Park Service (nps.gov/blri).</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_data_source">Park data: National Park Service — nps.gov/blri</string>
+
+    <!-- Permissions -->
+    <string name="location_permission_rationale">Location is required to show your position, milepost, and to navigate the Parkway.</string>
+    <string name="grant_permission">Grant permission</string>
+
+    <!-- Misc -->
+    <string name="ok">OK</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="loading">Loading…</string>
+    <string name="nav_notification_channel">Navigation</string>
+    <string name="nav_notification_title">Navigating the Blue Ridge Parkway</string>
+    <string name="nav_notification_text">Tap to return to navigation</string>
+</resources>

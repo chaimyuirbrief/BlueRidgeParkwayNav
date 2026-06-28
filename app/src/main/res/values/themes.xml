@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base theme is a Material3 NoActionBar; actual colors are driven by Compose.
+         Default to a dark splash background since the app defaults to dark mode. -->
+    <style name="Theme.BlueRidgeParkwayNav" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/parkway_green</item>
+        <item name="android:windowBackground">@color/parkway_green</item>
+    </style>
+</resources>

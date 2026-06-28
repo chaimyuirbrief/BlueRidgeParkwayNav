@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="parkway_green">#FF1B4332</color>
+    <color name="parkway_green_light">#FF74C69D</color>
+    <color name="parkway_sky">#FFB7E4C7</color>
+    <color name="parkway_yellow">#FFFFD166</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
