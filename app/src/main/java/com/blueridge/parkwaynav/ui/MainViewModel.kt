@@ -168,6 +168,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Best-known current location, or null if unavailable / no permission. */
+    suspend fun currentLatLng(): LatLng? =
+        locationEngine.lastLocation()?.let { LatLng(it.latitude, it.longitude) }
+
     // --- Routing ------------------------------------------------------------------------
     suspend fun resolveStopsToLatLng(): List<LatLng>? {
         val result = mutableListOf<LatLng>()

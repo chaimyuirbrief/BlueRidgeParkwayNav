@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Parkway Nav</string>
+    <string name="app_name">Blue Ridge Pkwy Nav</string>
 
     <!-- Home -->
     <string name="home_title">Blue Ridge Parkway Nav</string>
@@ -11,6 +11,9 @@
     <string name="saved_routes">Saved routes</string>
     <string name="no_saved_routes">No saved routes yet</string>
     <string name="overlooks_and_pois">Overlooks &amp; attractions</string>
+    <string name="show_full_parkway">Show entire Parkway</string>
+    <string name="hide_full_parkway">Hide Parkway overview</string>
+    <string name="my_location">My location</string>
     <string name="settings">Settings</string>
     <string name="about">About</string>
 

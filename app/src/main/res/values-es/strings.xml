@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Parkway Nav</string>
+    <string name="app_name">Blue Ridge Pkwy Nav</string>
 
     <string name="home_title">Navegación Blue Ridge Parkway</string>
     <string name="from_hint">Desde (ubicación actual)</string>
@@ -10,6 +10,9 @@
     <string name="saved_routes">Rutas guardadas</string>
     <string name="no_saved_routes">Aún no hay rutas guardadas</string>
     <string name="overlooks_and_pois">Miradores y atracciones</string>
+    <string name="show_full_parkway">Ver toda la Parkway</string>
+    <string name="hide_full_parkway">Ocultar vista de la Parkway</string>
+    <string name="my_location">Mi ubicación</string>
     <string name="settings">Configuración</string>
     <string name="about">Acerca de</string>
 
