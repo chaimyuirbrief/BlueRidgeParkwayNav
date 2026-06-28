@@ -82,8 +82,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (overviewLoaded) return
         overviewLoaded = true
         viewModelScope.launch {
-            val snapped = directions.snapAlong(brp.polyline)
-            if (snapped.size >= brp.polyline.size) _parkwayOverview.value = snapped
+            val coarse = brp.polyline
+            val snapped = directions.snapAlong(coarse)
+            // A real road-snapped line has many more vertices than the coarse anchors.
+            if (snapped.size > coarse.size + 5) {
+                _parkwayOverview.value = snapped
+                _message.value = "Parkway line: live road data"
+            } else {
+                _parkwayOverview.value = coarse
+                val why = directions.lastStatus.ifBlank { "no response" }
+                _message.value = "Parkway line approximate — Directions: $why"
+                overviewLoaded = false // allow a retry after fixing the key/billing
+            }
         }
     }
 

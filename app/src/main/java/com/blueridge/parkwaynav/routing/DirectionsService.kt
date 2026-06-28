@@ -37,6 +37,9 @@ class DirectionsService(private val apiKey: String) {
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    /** Last Directions API status (e.g. OK, REQUEST_DENIED, billing/exception text) for diagnostics. */
+    @Volatile var lastStatus: String = ""
+
     /**
      * Snaps an ordered list of on-road points onto the actual road network, returning a dense
      * polyline that follows real curves. Used to turn the coarse Parkway centerline anchors into
@@ -98,9 +101,20 @@ class DirectionsService(private val apiKey: String) {
                 connectTimeout = 12_000; readTimeout = 12_000; requestMethod = "GET"
             }
             val body = conn.inputStream.bufferedReader().use { it.readText() }
+            captureStatus(body)
             parse(body) ?: fallback
         } catch (e: Exception) {
+            lastStatus = "EXCEPTION: ${e.javaClass.simpleName}: ${e.message}"
             fallback
+        }
+    }
+
+    private fun captureStatus(body: String) {
+        runCatching {
+            val root = json.parseToJsonElement(body).jsonObject
+            val status = root["status"]?.jsonPrimitive?.content ?: "NO_STATUS"
+            val err = root["error_message"]?.jsonPrimitive?.content
+            lastStatus = if (err != null) "$status: $err" else status
         }
     }
 
