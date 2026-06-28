@@ -41,10 +41,17 @@ class NavigationService : Service() {
             .setCategory(NotificationCompat.CATEGORY_NAVIGATION)
             .build()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(NOTIF_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
-        } else {
-            startForeground(NOTIF_ID, notification)
+        // On Android 14+ a location-typed FGS requires runtime location permission; guard so a
+        // missing permission can never crash the app.
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(NOTIF_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
+            } else {
+                startForeground(NOTIF_ID, notification)
+            }
+        } catch (e: Exception) {
+            stopSelf()
+            return START_NOT_STICKY
         }
         return START_STICKY
     }

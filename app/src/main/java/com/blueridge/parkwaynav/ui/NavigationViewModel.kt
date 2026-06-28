@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,7 +35,8 @@ data class NavUiState(
     val nextStep: RouteStep? = null,
     val distanceToStepMiles: Double = 0.0,
     val remainingMiles: Double = 0.0,
-    val arrived: Boolean = false
+    val arrived: Boolean = false,
+    val needsLocationPermission: Boolean = false
 )
 
 class NavigationViewModel(app: Application) : AndroidViewModel(app) {
@@ -84,16 +86,42 @@ class NavigationViewModel(app: Application) : AndroidViewModel(app) {
         tts.init {
             if (_voiceEnabled.value) tts.speak("Starting navigation on the Blue Ridge Parkway.")
         }
+        startLocationIfPermitted()
+    }
+
+    fun hasLocationPermission(): Boolean {
+        val ctx = getApplication<Application>()
+        return androidx.core.content.ContextCompat.checkSelfPermission(
+            ctx, android.Manifest.permission.ACCESS_FINE_LOCATION
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED ||
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                ctx, android.Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    }
+
+    /** Starts the foreground service + location updates, but only when location is granted. */
+    fun startLocationIfPermitted() {
+        if (!hasLocationPermission()) {
+            _ui.value = _ui.value.copy(needsLocationPermission = true)
+            return
+        }
+        _ui.value = _ui.value.copy(needsLocationPermission = false)
         if (settings.value?.runInBackground != false) {
-            NavigationService.start(getApplication())
+            runCatching { NavigationService.start(getApplication()) }
         }
         startLocation()
     }
 
+    /** Call after the user grants location at runtime. */
+    fun onLocationPermissionGranted() = startLocationIfPermitted()
+
     private fun startLocation() {
+        if (!hasLocationPermission()) return
         locationJob?.cancel()
         locationJob = viewModelScope.launch {
-            locationEngine.locationUpdates(1500L).collect { loc ->
+            locationEngine.locationUpdates(1500L)
+                .catch { /* ignore location errors (e.g. permission revoked mid-trip) */ }
+                .collect { loc ->
                 val here = LatLng(loc.latitude, loc.longitude)
                 val speedMph = (loc.speed * 2.2369363).toInt().coerceAtLeast(0)
                 val bearing = if (loc.hasBearing()) loc.bearing else _ui.value.bearing

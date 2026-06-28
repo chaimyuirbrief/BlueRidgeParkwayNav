@@ -37,6 +37,56 @@ class DirectionsService(private val apiKey: String) {
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    /**
+     * Snaps an ordered list of on-road points onto the actual road network, returning a dense
+     * polyline that follows real curves. Used to turn the coarse Parkway centerline anchors into
+     * an accurate line. Falls back to the input points if no API key / the request fails, so the
+     * caller always gets a usable polyline.
+     */
+    suspend fun snapAlong(points: List<LatLng>): List<LatLng> {
+        if (points.size < 2 || apiKey.isBlank()) return points
+        val out = ArrayList<LatLng>()
+        var i = 0
+        // Directions allows origin + up to 23 intermediate waypoints + destination per request.
+        while (i < points.size - 1) {
+            val end = minOf(i + 24, points.size - 1)
+            val waypoints = points.subList(i + 1, end)
+            val seg = routeVia(points[i], points[end], waypoints).polyline
+            if (out.isEmpty()) out.addAll(seg) else out.addAll(seg.drop(1))
+            i = end
+        }
+        return if (out.size >= 2) out else points
+    }
+
+    suspend fun routeVia(
+        origin: LatLng,
+        destination: LatLng,
+        waypoints: List<LatLng>
+    ): DirResult = withContext(Dispatchers.IO) {
+        val fallback = DirResult(listOf(origin) + waypoints + destination, emptyList(), 0.0)
+        if (apiKey.isBlank()) return@withContext fallback
+        try {
+            val url = buildString {
+                append("https://maps.googleapis.com/maps/api/directions/json")
+                append("?origin=${origin.latitude},${origin.longitude}")
+                append("&destination=${destination.latitude},${destination.longitude}")
+                if (waypoints.isNotEmpty()) {
+                    append("&waypoints=")
+                    append(waypoints.joinToString("|") { "${it.latitude},${it.longitude}" })
+                }
+                append("&mode=driving")
+                append("&key=${URLEncoder.encode(apiKey, "UTF-8")}")
+            }
+            val conn = (URL(url).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 12_000; readTimeout = 12_000; requestMethod = "GET"
+            }
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            parse(body) ?: fallback
+        } catch (e: Exception) {
+            fallback
+        }
+    }
+
     suspend fun route(origin: LatLng, destination: LatLng): DirResult = withContext(Dispatchers.IO) {
         if (apiKey.isBlank()) return@withContext straightLine(origin, destination)
         try {

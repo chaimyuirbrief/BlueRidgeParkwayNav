@@ -29,8 +29,13 @@ class LocationEngine(context: Context) {
                 result.lastLocation?.let { trySend(it) }
             }
         }
-        client.requestLocationUpdates(request, callback, android.os.Looper.getMainLooper())
-        awaitClose { client.removeLocationUpdates(callback) }
+        try {
+            client.requestLocationUpdates(request, callback, android.os.Looper.getMainLooper())
+        } catch (e: SecurityException) {
+            // Location permission not granted — close the flow cleanly instead of crashing.
+            close(e)
+        }
+        awaitClose { runCatching { client.removeLocationUpdates(callback) } }
     }
 
     @SuppressLint("MissingPermission")

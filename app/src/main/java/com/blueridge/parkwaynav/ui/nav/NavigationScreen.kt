@@ -29,6 +29,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,9 +64,20 @@ fun NavigationScreen(nav: NavController) {
     val voiceOn by vm.voiceEnabled.collectAsState()
     val showSpeed by vm.showSpeed.collectAsState()
 
+    val locationPermission = rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { granted -> if (granted) vm.onLocationPermissionGranted() }
+
     DisposableEffect(Unit) {
         vm.start()
         onDispose { vm.stop() }
+    }
+
+    // Navigation needs location; request it on entry if not already granted.
+    LaunchedEffect(Unit) {
+        if (!vm.hasLocationPermission()) {
+            locationPermission.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        }
     }
 
     val cameraPositionState = rememberCameraPositionState {

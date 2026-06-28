@@ -66,7 +66,7 @@ class BrpRouter(
     }
 
     // --- Case: both ends on the Parkway -------------------------------------------------
-    private fun parkwayOnly(origin: LatLng, destination: LatLng): BrpRoute {
+    private suspend fun parkwayOnly(origin: LatLng, destination: LatLng): BrpRoute {
         val mO = repo.mileFor(origin) ?: 0.0
         val mD = repo.mileFor(destination) ?: 0.0
         val seg = parkwaySegment(mO, mD)
@@ -170,8 +170,11 @@ class BrpRouter(
         return BrpRoute(dir.polyline, steps, dir.distanceMiles, 0.0, null, null, origin, destination)
     }
 
-    /** Builds the Parkway centerline polyline between two mileposts (handles either direction). */
-    private fun parkwaySegment(fromMile: Double, toMile: Double): List<LatLng> {
+    /**
+     * Builds the Parkway polyline between two mileposts (handles either direction) and snaps it
+     * onto the real road via the Directions API so the drawn line follows the actual curves.
+     */
+    private suspend fun parkwaySegment(fromMile: Double, toMile: Double): List<LatLng> {
         val lo = min(fromMile, toMile)
         val hi = max(fromMile, toMile)
         val pts = mutableListOf<LatLng>()
@@ -179,7 +182,7 @@ class BrpRouter(
         val between = repo.centerline.filter { it.mile in lo..hi }.map { it.latLng }
         if (fromMile <= toMile) pts.addAll(between) else pts.addAll(between.reversed())
         pts.add(repo.pointAtMile(toMile))
-        return pts
+        return directions.snapAlong(pts)
     }
 
     /** Junction whose straight-line distance to [target] is smallest (the best exit/entry). */

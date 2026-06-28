@@ -35,6 +35,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val container = AppContainer.get(app)
     val brp = container.brp
     private val router = container.router
+    private val directions = container.directions
     private val places = container.placesHelper
     private val routesRepo = container.routesRepo
     private val settingsRepo = container.settingsRepo
@@ -70,6 +71,21 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
     fun consumeMessage() { _message.value = null }
+
+    // Road-snapped polyline of the entire Parkway for the "show entire Parkway" overview.
+    // Starts as the coarse centerline and is replaced with an accurate, road-following line.
+    private val _parkwayOverview = MutableStateFlow(brp.polyline)
+    val parkwayOverview: StateFlow<List<LatLng>> = _parkwayOverview.asStateFlow()
+    private var overviewLoaded = false
+
+    fun loadParkwayOverview() {
+        if (overviewLoaded) return
+        overviewLoaded = true
+        viewModelScope.launch {
+            val snapped = directions.snapAlong(brp.polyline)
+            if (snapped.size >= brp.polyline.size) _parkwayOverview.value = snapped
+        }
+    }
 
     private var autocompleteJob: Job? = null
 

@@ -79,6 +79,7 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
     val activeField by app.activeField.collectAsState()
     val savedRoutes by app.savedRoutes.collectAsState()
     val busy by app.busy.collectAsState()
+    val parkwayOverview by app.parkwayOverview.collectAsState()
 
     var hasLocation by remember {
         mutableStateOf(
@@ -123,7 +124,7 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
         ) {
             if (showParkway) {
                 Polyline(
-                    points = app.brp.polyline,
+                    points = parkwayOverview,
                     color = MaterialTheme.colorScheme.tertiary,
                     width = 12f
                 )
@@ -218,6 +219,7 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
             ExtendedFloatingActionButton(
                 onClick = {
                     showParkway = !showParkway
+                    if (showParkway) app.loadParkwayOverview()
                     if (showParkway && parkwayBounds != null) {
                         scope.launch {
                             runCatching {
