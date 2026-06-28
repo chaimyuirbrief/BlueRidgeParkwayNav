@@ -119,7 +119,7 @@ fun RoutePlannerScreen(app: MainViewModel, nav: NavController) {
             Button(
                 onClick = {
                     locationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                    app.computeRoute { ok -> if (ok) nav.navigate(Routes.NAVIGATION) }
+                    app.computeRoute { ok -> if (ok) nav.navigate(Routes.PREVIEW) }
                 },
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth()

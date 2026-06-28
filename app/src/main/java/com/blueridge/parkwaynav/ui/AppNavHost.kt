@@ -11,6 +11,7 @@ import com.blueridge.parkwaynav.ui.about.AboutScreen
 import com.blueridge.parkwaynav.ui.home.HomeScreen
 import com.blueridge.parkwaynav.ui.nav.NavigationScreen
 import com.blueridge.parkwaynav.ui.planner.RoutePlannerScreen
+import com.blueridge.parkwaynav.ui.preview.RoutePreviewScreen
 import com.blueridge.parkwaynav.ui.pois.OverlooksScreen
 import com.blueridge.parkwaynav.ui.settings.SettingsScreen
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +24,7 @@ object PendingDeepLink {
 object Routes {
     const val HOME = "home"
     const val PLANNER = "planner"
+    const val PREVIEW = "preview"
     const val NAVIGATION = "navigation"
     const val OVERLOOKS = "overlooks"
     const val SETTINGS = "settings"
@@ -49,7 +51,7 @@ fun AppNavHost(app: MainViewModel) {
             if (id != null) {
                 app.savedRoutes.value.firstOrNull { it.id == id }?.let { saved ->
                     app.loadSavedRoute(saved)
-                    app.computeRoute { ok -> if (ok) navController.navigate(Routes.NAVIGATION) }
+                    app.computeRoute { ok -> if (ok) navController.navigate(Routes.PREVIEW) }
                 }
                 PendingDeepLink.routeId.value = null
             }
@@ -59,6 +61,7 @@ fun AppNavHost(app: MainViewModel) {
     NavHost(navController = navController, startDestination = Routes.HOME) {
         composable(Routes.HOME) { HomeScreen(app, navController) }
         composable(Routes.PLANNER) { RoutePlannerScreen(app, navController) }
+        composable(Routes.PREVIEW) { RoutePreviewScreen(app, navController) }
         composable(Routes.NAVIGATION) { NavigationScreen(navController) }
         composable(Routes.OVERLOOKS) { OverlooksScreen(app, navController) }
         composable(Routes.SETTINGS) { SettingsScreen(app, navController) }

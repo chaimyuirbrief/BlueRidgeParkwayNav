@@ -26,6 +26,13 @@
     <string name="stay_on_parkway">Mantenerme en la Parkway lo más posible</string>
     <string name="exit_at_junction">Salir en %1$s (MP %2$s)</string>
     <string name="continue_on_parkway">Continúe por la Blue Ridge Parkway</string>
+    <string name="route_preview">Vista previa de la ruta</string>
+    <string name="total_distance">Distancia total</string>
+    <string name="on_parkway_distance">En la Parkway</string>
+    <string name="est_time">Tiempo est.</string>
+    <string name="directions_steps">Indicaciones</string>
+    <string name="exits_at">Sale de la Parkway en %1$s</string>
+    <string name="no_route">No se pudo crear la ruta. Verifica el inicio y el destino.</string>
 
     <string name="navigation">Navegación</string>
     <string name="toggle_voice">Guía por voz</string>

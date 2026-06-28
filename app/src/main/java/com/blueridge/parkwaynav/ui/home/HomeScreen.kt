@@ -191,7 +191,7 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
                         Button(
                             onClick = {
                                 locationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                                app.computeRoute { ok -> if (ok) nav.navigate(Routes.NAVIGATION) }
+                                app.computeRoute { ok -> if (ok) nav.navigate(Routes.PREVIEW) }
                             },
                             enabled = !busy,
                             modifier = Modifier.weight(1f)
@@ -296,7 +296,7 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
                             IconButton(onClick = {
                                 showSavedSheet = false
                                 app.loadSavedRoute(route)
-                                app.computeRoute { ok -> if (ok) nav.navigate(Routes.NAVIGATION) }
+                                app.computeRoute { ok -> if (ok) nav.navigate(Routes.PREVIEW) }
                             }) {
                                 Icon(Icons.Filled.Navigation, contentDescription = stringResource(R.string.start_navigation))
                             }

@@ -28,6 +28,13 @@
     <string name="stay_on_parkway">Keep me on the Parkway as long as possible</string>
     <string name="exit_at_junction">Exit at %1$s (MP %2$s)</string>
     <string name="continue_on_parkway">Continue on the Blue Ridge Parkway</string>
+    <string name="route_preview">Route preview</string>
+    <string name="total_distance">Total distance</string>
+    <string name="on_parkway_distance">On the Parkway</string>
+    <string name="est_time">Est. time</string>
+    <string name="directions_steps">Directions</string>
+    <string name="exits_at">Exits the Parkway at %1$s</string>
+    <string name="no_route">Couldn\'t build a route. Check your start and destination.</string>
 
     <!-- Navigation -->
     <string name="navigation">Navigation</string>

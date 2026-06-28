@@ -97,7 +97,7 @@ fun OverlooksScreen(app: MainViewModel, nav: NavController) {
                         // Set this POI as the destination and start a Parkway route.
                         app.useCurrentLocation(0)
                         app.pickPoiAsDestination(poi)
-                        app.computeRoute { ok -> if (ok) nav.navigate(Routes.NAVIGATION) }
+                        app.computeRoute { ok -> if (ok) nav.navigate(Routes.PREVIEW) }
                     }
                     Spacer(Modifier.height(8.dp))
                 }
