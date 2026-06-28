@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag/version to release (e.g. v0.1.0)"
+        required: true
+        default: "v0.1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Build debug APK
+        env:
+          # Repository secret named maps_api_key, exposed to the build as MAPS_API_KEY.
+          MAPS_API_KEY: ${{ secrets.maps_api_key }}
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Rename APK
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk "dist/parkway-nav-${TAG}.apk"
+
+      - name: Publish pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          name: "Parkway Nav ${{ github.event.inputs.tag || github.ref_name }} (pre-release)"
+          prerelease: true
+          generate_release_notes: true
+          files: dist/*.apk
+          body: |
+            ## Parkway Nav — pre-release
+
+            First pre-release of the Blue Ridge Parkway navigation app.
+
+            **This is an early build for testing.** It keeps you on the Blue Ridge
+            Parkway as long as possible and only exits at the junction nearest your
+            destination — the opposite of general map apps.
+
+            ### Install
+            Download the attached `parkway-nav-*.apk` and sideload it (enable
+            "install unknown apps"). This is a **debug** build signed with the debug
+            key; it is for testing, not the Play Store.
+
+            ### Requires
+            A Google Maps Platform key (Maps SDK for Android, Places API, Directions
+            API) was injected from the `maps_api_key` repository secret at build time.
+
+            ### Known limitations
+            - Parkway centerline is a coarse anchor-point polyline (NPS data); routing
+              fidelity improves with higher-resolution GIS data.
+            - Voice gender selection is heuristic across TTS engines.
+            - Post-Hurricane-Helene NC closures are not reflected — check the NPS
+              real-time closures map before traveling.
