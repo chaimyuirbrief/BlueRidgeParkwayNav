@@ -38,8 +38,8 @@ android {
         applicationId = "com.blueridge.parkwaynav"
         minSdk = 24
         targetSdk = 34
-        versionCode = 9
-        versionName = "0.1.8"
+        versionCode = 10
+        versionName = "0.1.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
