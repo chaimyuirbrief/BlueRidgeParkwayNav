@@ -31,8 +31,8 @@ android {
         applicationId = "com.blueridge.parkwaynav"
         minSdk = 24
         targetSdk = 34
-        versionCode = 7
-        versionName = "0.1.6"
+        versionCode = 8
+        versionName = "0.1.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -40,6 +40,17 @@ android {
         // BuildConfig.MAPS_API_KEY (needed for the Places SDK initialization).
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
         buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
+    }
+
+    signingConfigs {
+        // Committed fixed debug keystore so the signing SHA-1 is stable across all builds
+        // (local + CI). Required for a Google Maps key with an "Android apps" restriction.
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {
