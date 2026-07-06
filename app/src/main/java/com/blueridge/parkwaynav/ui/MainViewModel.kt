@@ -41,6 +41,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val settingsRepo = container.settingsRepo
     private val backupManager = container.backupManager
     private val locationEngine = container.locationEngine
+    private val closuresRepo = container.closuresRepo
+
+    /** Live Blue Ridge Parkway road closures (from the NPS Data API). */
+    val closures: StateFlow<List<com.blueridge.parkwaynav.data.Closure>> = closuresRepo.closures
+    fun refreshClosures() { viewModelScope.launch { closuresRepo.refresh() } }
 
     val settings: StateFlow<AppSettings> =
         settingsRepo.settings.stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
@@ -101,6 +106,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         places.newSession()
+        refreshClosures()
         // Mirror language + PiP into a SharedPreferences cache for synchronous reads
         // (attachBaseContext locale, onUserLeaveHint PiP) that cannot await DataStore.
         viewModelScope.launch {

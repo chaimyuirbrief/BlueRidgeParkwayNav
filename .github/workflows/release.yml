@@ -33,8 +33,12 @@ jobs:
 
       - name: Build debug APK
         env:
-          # Repository secret named maps_api_key, exposed to the build as MAPS_API_KEY.
+          # SDK key (Maps SDK for Android + Places) — may be Android-app restricted.
           MAPS_API_KEY: ${{ secrets.maps_api_key }}
+          # Directions web-service key — must NOT be Android-restricted. Optional: falls back to MAPS_API_KEY.
+          DIRECTIONS_API_KEY: ${{ secrets.directions_api_key }}
+          # Free NPS Data API key for live Blue Ridge Parkway road closures. Optional.
+          NPS_API_KEY: ${{ secrets.nps_api_key }}
         run: gradle :app:assembleDebug --no-daemon --stacktrace
 
       - name: Rename APK

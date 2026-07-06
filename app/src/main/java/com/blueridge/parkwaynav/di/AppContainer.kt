@@ -18,8 +18,11 @@ class AppContainer private constructor(context: Context) {
     val brp: BrpRepository by lazy { BrpRepository.get(appContext) }
     val settingsRepo: SettingsRepository by lazy { SettingsRepository(appContext) }
     val routesRepo: SavedRoutesRepository by lazy { SavedRoutesRepository.get(appContext) }
-    val directions: DirectionsService by lazy { DirectionsService(BuildConfig.MAPS_API_KEY) }
+    val directions: DirectionsService by lazy { DirectionsService(BuildConfig.DIRECTIONS_API_KEY) }
     val router: BrpRouter by lazy { BrpRouter(brp, directions) }
+    val closuresRepo: com.blueridge.parkwaynav.data.ClosuresRepository by lazy {
+        com.blueridge.parkwaynav.data.ClosuresRepository(BuildConfig.NPS_API_KEY, brp)
+    }
     val placesHelper: PlacesHelper by lazy { PlacesHelper(appContext, brp) }
     val locationEngine: LocationEngine by lazy { LocationEngine(appContext) }
     val backupManager: BackupManager by lazy { BackupManager(appContext, settingsRepo, routesRepo) }

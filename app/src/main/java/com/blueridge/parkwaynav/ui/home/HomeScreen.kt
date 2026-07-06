@@ -52,6 +52,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -88,6 +89,7 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
     val busy by app.busy.collectAsState()
     val parkwayOverview by app.parkwayOverview.collectAsState()
     val settings by app.settings.collectAsState()
+    val closures by app.closures.collectAsState()
 
     var hasLocation by remember {
         mutableStateOf(
@@ -169,6 +171,26 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
                     }
                 )
             }
+            // Live road closures (NPS): red segments where a milepost range is known, red
+            // markers for single-point closures.
+            closures.forEach { c ->
+                if (c.isSegment && c.fromMile != null && c.toMile != null) {
+                    Polyline(
+                        points = app.brp.segmentPoints(c.fromMile!!, c.toMile!!),
+                        color = Color(0xFFD32F2F),
+                        width = 14f,
+                        zIndex = 3f
+                    )
+                } else if (c.fromMile != null) {
+                    Marker(
+                        state = MarkerState(position = app.brp.pointAtMile(c.fromMile!!)),
+                        title = c.title,
+                        snippet = "Road closure • MP ${c.fromMile}",
+                        icon = com.google.android.gms.maps.model.BitmapDescriptorFactory
+                            .defaultMarker(com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_RED)
+                    )
+                }
+            }
         }
 
         // ---- Top overlay: search + quick actions ----
@@ -196,6 +218,14 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
                         IconButton(onClick = { nav.navigate(Routes.ABOUT) }) {
                             Icon(Icons.Filled.Info, contentDescription = stringResource(R.string.about))
                         }
+                    }
+                    if (closures.isNotEmpty()) {
+                        Text(
+                            "⚠ ${closures.size} Parkway ${if (closures.size == 1) "closure" else "closures"} — shown in red on the map",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFFD32F2F),
+                            modifier = Modifier.padding(bottom = 6.dp)
+                        )
                     }
                     AddressField(
                         value = stops.getOrNull(0)?.query ?: "",

@@ -11,17 +11,24 @@ plugins {
 //      maps_api_key exposed as env: MAPS_API_KEY: ${{ secrets.maps_api_key }})
 //   2. A `MAPS_API_KEY` entry in local.properties (for local development)
 // Falling back to an empty string so the project still configures without a key.
-val mapsApiKey: String = run {
-    System.getenv("MAPS_API_KEY")?.takeIf { it.isNotBlank() }
-        ?: System.getenv("maps_api_key")?.takeIf { it.isNotBlank() }
-        ?: run {
-            val lp = rootProject.file("local.properties")
-            if (lp.exists()) {
-                Properties().apply { lp.inputStream().use { load(it) } }
-                    .getProperty("MAPS_API_KEY", "")
-            } else ""
-        }
+val localProps: Properties = Properties().apply {
+    val lp = rootProject.file("local.properties")
+    if (lp.exists()) lp.inputStream().use { load(it) }
 }
+fun secret(vararg names: String): String {
+    for (n in names) System.getenv(n)?.takeIf { it.isNotBlank() }?.let { return it }
+    for (n in names) localProps.getProperty(n)?.takeIf { it.isNotBlank() }?.let { return it }
+    return ""
+}
+
+// SDK key (Maps SDK for Android + Places) — this one may carry an "Android apps" restriction.
+val mapsApiKey: String = secret("MAPS_API_KEY", "maps_api_key")
+// Directions web-service key — must NOT be Android-restricted (web services reject that).
+// Falls back to the SDK key so a single-key setup still works if this isn't provided.
+val directionsApiKey: String =
+    secret("DIRECTIONS_API_KEY", "directions_api_key").ifBlank { mapsApiKey }
+// National Park Service Data API key (free) for live Blue Ridge Parkway road closures.
+val npsApiKey: String = secret("NPS_API_KEY", "nps_api_key")
 
 android {
     namespace = "com.blueridge.parkwaynav"
@@ -31,8 +38,8 @@ android {
         applicationId = "com.blueridge.parkwaynav"
         minSdk = 24
         targetSdk = 34
-        versionCode = 8
-        versionName = "0.1.7"
+        versionCode = 9
+        versionName = "0.1.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -40,6 +47,8 @@ android {
         // BuildConfig.MAPS_API_KEY (needed for the Places SDK initialization).
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
         buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
+        buildConfigField("String", "DIRECTIONS_API_KEY", "\"$directionsApiKey\"")
+        buildConfigField("String", "NPS_API_KEY", "\"$npsApiKey\"")
     }
 
     signingConfigs {

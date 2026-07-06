@@ -82,6 +82,7 @@ fun NavigationScreen(app: MainViewModel, nav: NavController) {
     val voiceOn by vm.voiceEnabled.collectAsState()
     val showSpeed by vm.showSpeed.collectAsState()
     val settings by app.settings.collectAsState()
+    val closures by app.closures.collectAsState()
 
     var following by remember { mutableStateOf(true) }
     var northUp by remember { mutableStateOf(false) }
@@ -150,6 +151,17 @@ fun NavigationScreen(app: MainViewModel, nav: NavController) {
                 // Dark casing under a bright line for high contrast against terrain.
                 Polyline(points = r.polyline, color = Color(0xFF06281C), width = 30f, zIndex = 1f)
                 Polyline(points = r.polyline, color = Color(0xFF00E5FF), width = 16f, zIndex = 2f)
+            }
+            // Live road closures in red so the driver sees them ahead.
+            closures.forEach { c ->
+                if (c.isSegment && c.fromMile != null && c.toMile != null) {
+                    Polyline(
+                        points = app.brp.segmentPoints(c.fromMile!!, c.toMile!!),
+                        color = Color(0xFFD32F2F),
+                        width = 18f,
+                        zIndex = 2.5f
+                    )
+                }
             }
             ui.location?.let { loc ->
                 Marker(

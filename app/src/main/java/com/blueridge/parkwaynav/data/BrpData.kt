@@ -99,6 +99,16 @@ class BrpRepository private constructor(val dataset: BrpDataset) {
         return centerline.last().latLng
     }
 
+    /** Centerline points between two mileposts (inclusive), for drawing a highlighted segment. */
+    fun segmentPoints(fromMile: Double, toMile: Double): List<LatLng> {
+        val lo = minOf(fromMile, toMile)
+        val hi = maxOf(fromMile, toMile)
+        val pts = mutableListOf(pointAtMile(lo))
+        centerline.filter { it.mile in lo..hi }.forEach { pts.add(it.latLng) }
+        pts.add(pointAtMile(hi))
+        return pts
+    }
+
     companion object {
         @Volatile private var instance: BrpRepository? = null
 
