@@ -74,8 +74,8 @@ jobs:
             API) was injected from the `maps_api_key` repository secret at build time.
 
             ### Known limitations
-            - Parkway centerline is a coarse anchor-point polyline (NPS data); routing
-              fidelity improves with higher-resolution GIS data.
             - Voice gender selection is heuristic across TTS engines.
-            - Post-Hurricane-Helene NC closures are not reflected — check the NPS
-              real-time closures map before traveling.
+            - Live road closures require an NPS API key at build time; always check
+              the NPS real-time closures map before traveling.
+
+            Parkway centerline: real road geometry © OpenStreetMap contributors (ODbL).
