@@ -26,9 +26,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Embed high-resolution OSM Blue Ridge Parkway centerline
-
-Real road geometry from OpenStreetMap (© OpenStreetMap contributors, ODbL),
-fetched via Overpass and stitched/simplified by scripts/fetch_centerline.py."
+            git commit -m "Embed high-resolution OSM Blue Ridge Parkway centerline" \
+              -m "Real road geometry from OpenStreetMap (© OpenStreetMap contributors, ODbL), fetched via Overpass and stitched/simplified by scripts/fetch_centerline.py."
             git push
           fi
