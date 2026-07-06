@@ -136,7 +136,7 @@
     <string name="about_title">Why this app exists</string>
     <string name="about_body">Standard map apps route you off the Blue Ridge Parkway at the first opportunity — onto faster highways — even when you want to enjoy the drive and stay on the Parkway as long as possible. Parkway Nav is built for Parkway travelers: it keeps you on the Blue Ridge Parkway and only directs you off at the junction nearest your destination.\n\nYour privacy is paramount. The developer does NOT collect any data. There are no analytics, no trackers, and no accounts. Everything — your routes, your settings, your location — stays on your device and is never sent anywhere unless you explicitly export a backup to a folder you choose.\n\nOverlook, visitor center, and attraction information is sourced from the National Park Service (nps.gov/blri).</string>
     <string name="about_version">Version %1$s</string>
-    <string name="about_data_source">Park data: National Park Service — nps.gov/blri</string>
+    <string name="about_data_source">Park data: National Park Service — nps.gov/blri. Road geometry © OpenStreetMap contributors (ODbL).</string>
 
     <!-- Permissions -->
     <string name="location_permission_rationale">Location is required to show your position, milepost, and to navigate the Parkway.</string>

@@ -86,6 +86,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun loadParkwayOverview() {
         if (overviewLoaded) return
         overviewLoaded = true
+        // With the dense embedded OSM centerline the polyline IS the road — no snapping.
+        if (brp.polyline.size >= com.blueridge.parkwaynav.routing.BrpRouter.DENSE_CENTERLINE_POINTS) {
+            _parkwayOverview.value = brp.polyline
+            return
+        }
         viewModelScope.launch {
             val coarse = brp.polyline
             val snapped = directions.snapAlong(coarse)

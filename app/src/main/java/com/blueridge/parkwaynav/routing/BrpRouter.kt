@@ -182,7 +182,10 @@ class BrpRouter(
         val between = repo.centerline.filter { it.mile in lo..hi }.map { it.latLng }
         if (fromMile <= toMile) pts.addAll(between) else pts.addAll(between.reversed())
         pts.add(repo.pointAtMile(toMile))
-        return directions.snapAlong(pts)
+        // A dense embedded centerline (real OSM road geometry) already follows the road
+        // exactly — only fall back to Directions snapping on the coarse anchor dataset.
+        return if (repo.centerline.size >= DENSE_CENTERLINE_POINTS) pts
+        else directions.snapAlong(pts)
     }
 
     /** Junction whose straight-line distance to [target] is smallest (the best exit/entry). */
@@ -195,6 +198,7 @@ class BrpRouter(
     companion object {
         const val ON_PARKWAY_MILES = 0.4
         const val MIN_PARKWAY_SEGMENT_MILES = 3.0
+        const val DENSE_CENTERLINE_POINTS = 1000
     }
 }
 

@@ -125,7 +125,7 @@
     <string name="about_title">Por qué existe esta app</string>
     <string name="about_body">Las apps de mapas comunes te sacan de la Blue Ridge Parkway en cuanto pueden — hacia autopistas más rápidas — incluso cuando quieres disfrutar el viaje y permanecer en la Parkway lo más posible. Parkway Nav está hecha para viajeros de la Parkway: te mantiene en la Blue Ridge Parkway y solo te indica salir en el cruce más cercano a tu destino.\n\nTu privacidad es primordial. El desarrollador NO recopila ningún dato. No hay análisis, ni rastreadores, ni cuentas. Todo — tus rutas, tu configuración, tu ubicación — permanece en tu dispositivo y nunca se envía a ningún lugar a menos que exportes una copia a una carpeta que elijas.\n\nLa información de miradores, centros de visitantes y atracciones proviene del Servicio de Parques Nacionales (nps.gov/blri).</string>
     <string name="about_version">Versión %1$s</string>
-    <string name="about_data_source">Datos del parque: National Park Service — nps.gov/blri</string>
+    <string name="about_data_source">Datos del parque: National Park Service — nps.gov/blri. Geometría vial © colaboradores de OpenStreetMap (ODbL).</string>
 
     <string name="location_permission_rationale">Se necesita la ubicación para mostrar tu posición, la milla y para navegar la Parkway.</string>
     <string name="grant_permission">Conceder permiso</string>
