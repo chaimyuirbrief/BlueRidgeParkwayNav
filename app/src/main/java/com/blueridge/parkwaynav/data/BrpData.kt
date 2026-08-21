@@ -3,6 +3,7 @@ package com.blueridge.parkwaynav.data
 import android.content.Context
 import com.google.android.gms.maps.model.LatLng
 import com.blueridge.parkwaynav.routing.GeoUtils
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -18,9 +19,16 @@ data class Poi(
     val lat: Double,
     val lng: Double,
     val type: String,
-    val desc: String = ""
+    val desc: String = "",
+    /**
+     * For destinations reached by leaving the Parkway (e.g. Mount Mitchell via NC-128):
+     * approximate one-way driving miles from the Parkway. 0 means the feature is on the
+     * Parkway itself. The marker is always placed at the Parkway access point.
+     */
+    @SerialName("spur_miles") val spurMiles: Double = 0.0
 ) {
     val latLng: LatLng get() = LatLng(lat, lng)
+    val isOffParkway: Boolean get() = spurMiles > 0.0
 }
 
 @Serializable

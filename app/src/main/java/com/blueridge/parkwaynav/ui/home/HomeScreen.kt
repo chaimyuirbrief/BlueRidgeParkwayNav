@@ -162,7 +162,8 @@ fun HomeScreen(app: MainViewModel, nav: NavController) {
                 Marker(
                     state = MarkerState(position = p.latLng),
                     title = p.name,
-                    snippet = "MP ${p.mile} • ${p.type.replace('_', ' ')}",
+                    snippet = "MP ${p.mile} • ${p.type.replace('_', ' ')}" +
+                        if (p.isOffParkway) " • ${p.spurMiles} mi off Parkway" else "",
                     icon = com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hue),
                     onInfoWindowClick = {
                         app.useCurrentLocation(0)

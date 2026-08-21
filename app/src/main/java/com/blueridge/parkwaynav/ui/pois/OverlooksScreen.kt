@@ -119,7 +119,8 @@ private fun PoiCard(poi: Poi, onNavigate: () -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(poi.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 Text(
-                    "MP ${poi.mile} • ${prettyType(poi.type)}",
+                    "MP ${poi.mile} • ${prettyType(poi.type)}" +
+                        if (poi.isOffParkway) " • ${poi.spurMiles} mi off Parkway" else "",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
