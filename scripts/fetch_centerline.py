@@ -24,6 +24,15 @@ relation["route"="road"]["name"="Blue Ridge Parkway"];
 out geom;
 """
 
+# The route relation occasionally omits a way, which would leave the stitched line
+# cutting a straight chord across a bend (one such gap sat right at the Folk Art
+# Center, MP 382). Fetch every road way carrying the Parkway's name as well, and use
+# them purely to bridge those gaps.
+FILL_QUERY = """[out:json][timeout:300];
+way["highway"]["name"="Blue Ridge Parkway"];
+out geom;
+"""
+
 NORTH_TERMINUS = (38.0331, -78.8590)  # Rockfish Gap, MP 0
 OFFICIAL_LENGTH_MILES = 469.1
 DATA_FILE = "app/src/main/assets/brp_data.json"
@@ -40,8 +49,8 @@ def haversine_m(a, b):
     return 2 * r * math.asin(math.sqrt(h))
 
 
-def fetch_overpass():
-    payload = urllib.parse.urlencode({"data": QUERY}).encode()
+def fetch_overpass(query=None):
+    payload = urllib.parse.urlencode({"data": query or QUERY}).encode()
     last_err = None
     for url in OVERPASS_ENDPOINTS:
         for attempt in range(3):
@@ -83,6 +92,38 @@ def way_segments(rel):
     if not segs:
         sys.exit("Relation has no way geometry")
     return segs
+
+
+def fill_gaps(line, pool, threshold_mi=0.12):
+    """Replace straight-chord gaps with real road geometry from the named-way pool."""
+    if not pool:
+        return line, 0
+    filled = 0
+    out = [line[0]]
+    for i in range(len(line) - 1):
+        a, b = line[i], line[i + 1]
+        if haversine_m(a, b) / 1609.344 <= threshold_mi:
+            out.append(b)
+            continue
+        best = None
+        for way in pool:
+            ia = min(range(len(way)), key=lambda k: haversine_m(a, way[k]))
+            ib = min(range(len(way)), key=lambda k: haversine_m(b, way[k]))
+            if ia == ib:
+                continue
+            err = haversine_m(a, way[ia]) + haversine_m(b, way[ib])
+            if err > 400:  # both gap ends must actually touch this way
+                continue
+            sub = way[ia:ib + 1] if ia < ib else way[ib:ia + 1][::-1]
+            if len(sub) < 2:
+                continue
+            if best is None or err < best[0]:
+                best = (err, sub)
+        if best:
+            out.extend(best[1][1:-1])
+            filled += 1
+        out.append(b)
+    return out, filled
 
 
 def stitch(segs):
@@ -136,6 +177,19 @@ def main():
     line = stitch(way_segments(rel))
     print(f"Stitched {len(line)} raw points")
 
+    pool = []
+    try:
+        for e in fetch_overpass(FILL_QUERY).get("elements", []):
+            if e.get("type") == "way" and e.get("geometry"):
+                pts = [(p["lat"], p["lon"]) for p in e["geometry"]]
+                if len(pts) >= 2:
+                    pool.append(pts)
+        print(f"Fetched {len(pool)} named Parkway ways for gap filling")
+    except Exception as exc:  # noqa: BLE001
+        print(f"gap-fill fetch failed, continuing: {exc}", file=sys.stderr)
+    line, filled = fill_gaps(line, pool)
+    print(f"Filled {filled} geometry gaps -> {len(line)} points")
+
     line = simplify(line, 30.0)
     total_m = sum(haversine_m(line[i], line[i + 1]) for i in range(len(line) - 1))
     total_mi = total_m / 1609.344
@@ -165,6 +219,11 @@ def main():
     brp["centerline"] = centerline
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(brp, f, ensure_ascii=False, separators=(",", ":"))
+    remaining = [
+        haversine_m(line[i], line[i + 1]) / 1609.344 for i in range(len(line) - 1)
+    ]
+    big = [g for g in remaining if g > 0.25]
+    print(f"remaining gaps >0.25 mi: {len(big)}" + (f" (max {max(big):.2f} mi)" if big else ""))
     print(f"Wrote {len(centerline)} centerline points to {DATA_FILE}")
 
 

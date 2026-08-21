@@ -25,6 +25,7 @@ import sys
 
 DATA_FILE = "app/src/main/assets/brp_data.json"
 TRUST_RADIUS_MI = 0.30
+BIN_MI = 40           # width of each drift-smoothing bin, miles
 MAX_ANCHOR_DRIFT_MI = 2.0   # reject anchors whose drift is an obvious outlier
 
 
@@ -42,42 +43,89 @@ def nearest_point(centerline, lat, lng):
     return best, hav(lat, lng, best["lat"], best["lng"])
 
 
-def build_calibration(centerline, features):
-    """official milepost -> geometry milepost, from features already on the road."""
-    anchors = []
+def build_calibration(centerline, features, verified):
+    """Model posted-milepost -> geometry-milepost drift, smoothed.
+
+    Raw anchors are noisy, and forcing the anchor curve itself to be monotonic
+    flattens whole stretches - which collapses distinct nearby features (e.g.
+    Price Lake 296.7 / Julian Price 297.1) onto the same coordinate. Instead we
+    model the DRIFT (geometry mile minus posted mile), which varies slowly, and
+    smooth it into sparse knots. Adding a slowly-varying drift preserves the
+    real spacing between neighbouring features.
+    """
+    raw = []
     for f in features:
+        # Use the VERIFIED milepost: a feature whose posted milepost was simply wrong
+        # (e.g. US-220 Roanoke, 112.2 -> 121.4) would otherwise inject a bogus drift.
+        mp = float(verified.get(f["name"], {}).get("milepost", f["mile"]))
         best, dist = nearest_point(centerline, f["lat"], f["lng"])
-        if dist <= TRUST_RADIUS_MI and abs(best["mile"] - f["mile"]) <= MAX_ANCHOR_DRIFT_MI:
-            anchors.append((float(f["mile"]), float(best["mile"])))
+        if dist <= TRUST_RADIUS_MI and abs(best["mile"] - mp) <= MAX_ANCHOR_DRIFT_MI:
+            raw.append((mp, float(best["mile"]) - mp))
+    raw.sort()
     lo = min(c["mile"] for c in centerline)
     hi = max(c["mile"] for c in centerline)
-    anchors.append((lo, lo))
-    anchors.append((hi, hi))
-    # average duplicates, sort, enforce monotonicity
-    by_official = {}
-    for o, g in anchors:
-        by_official.setdefault(o, []).append(g)
-    pts = sorted((o, sum(v) / len(v)) for o, v in by_official.items())
-    mono = []
-    for o, g in pts:
-        if mono and g < mono[-1][1]:
-            g = mono[-1][1]
-        mono.append((o, g))
-    return mono
+
+    knots = [(lo, 0.0)]
+    for start in range(0, int(hi) + BIN_MI, BIN_MI):
+        chunk = [d for m, d in raw if start <= m < start + BIN_MI]
+        if chunk:
+            chunk.sort()
+            median = chunk[len(chunk) // 2]
+            knots.append((start + BIN_MI / 2.0, median))
+    knots.append((hi, 0.0))
+    knots.sort()
+
+    # Guarantee the resulting map stays increasing: drift slope must exceed -1.
+    safe = [knots[0]]
+    for m, d in knots[1:]:
+        pm, pd = safe[-1]
+        span = m - pm
+        if span > 0:
+            min_d = pd - 0.9 * span
+            if d < min_d:
+                d = min_d
+        safe.append((m, d))
+    return safe
 
 
-def calibrate(mono, mp):
-    if mp <= mono[0][0]:
-        return mono[0][1]
-    if mp >= mono[-1][0]:
-        return mono[-1][1]
-    for i in range(len(mono) - 1):
-        o0, g0 = mono[i]
-        o1, g1 = mono[i + 1]
-        if o0 <= mp <= o1:
-            t = 0.0 if o1 == o0 else (mp - o0) / (o1 - o0)
-            return g0 + (g1 - g0) * t
-    return mono[-1][1]
+def calibrate(knots, mp):
+    """posted milepost -> geometry milepost via smoothed drift."""
+    if mp <= knots[0][0]:
+        drift = knots[0][1]
+    elif mp >= knots[-1][0]:
+        drift = knots[-1][1]
+    else:
+        drift = knots[-1][1]
+        for i in range(len(knots) - 1):
+            m0, d0 = knots[i]
+            m1, d1 = knots[i + 1]
+            if m0 <= mp <= m1:
+                t = 0.0 if m1 == m0 else (mp - m0) / (m1 - m0)
+                drift = d0 + (d1 - d0) * t
+                break
+    return mp + drift
+
+
+def snap_to_polyline(centerline, lat, lng):
+    """Nudge a point onto the nearest place on the road line itself (not a vertex),
+    so linear interpolation across a sharp curve cannot leave it off the pavement."""
+    best_i = min(
+        range(len(centerline)),
+        key=lambda i: (centerline[i]["lat"] - lat) ** 2 + (centerline[i]["lng"] - lng) ** 2,
+    )
+    best = (lat, lng)
+    best_d = float("inf")
+    for i in range(max(0, best_i - 3), min(len(centerline) - 1, best_i + 3)):
+        a, b = centerline[i], centerline[i + 1]
+        dx = b["lat"] - a["lat"]
+        dy = b["lng"] - a["lng"]
+        L = dx * dx + dy * dy
+        t = 0.0 if L == 0 else max(0.0, min(1.0, ((lat - a["lat"]) * dx + (lng - a["lng"]) * dy) / L))
+        px, py = a["lat"] + dx * t, a["lng"] + dy * t
+        d = hav(lat, lng, px, py)
+        if d < best_d:
+            best_d, best = d, (px, py)
+    return best
 
 
 def point_at_mile(centerline, mile):
@@ -110,8 +158,8 @@ def main():
     centerline = sorted(data["centerline"], key=lambda p: p["mile"])
     features = data["pois"] + data["junctions"]
 
-    mono = build_calibration(centerline, features)
-    print(f"calibration anchors: {len(mono)}")
+    mono = build_calibration(centerline, features, verified)
+    print(f"calibration knots: {len(mono)}  drift " + ", ".join(f"{m:.0f}:{d:+.2f}" for m, d in mono))
 
     # Features sharing a milepost (e.g. Linn Cove Viaduct + its visitor center) would land on
     # the exact same pixel and hide each other. Spread them a few hundred feet along the road.
@@ -126,6 +174,7 @@ def main():
                 nudge[nm] = (i - (len(names) - 1) / 2.0) * 0.03
 
     moved = []
+    kept = []
     for f in features:
         v = verified.get(f["name"], {})
         mp = float(v.get("milepost", f["mile"]))
@@ -133,9 +182,26 @@ def main():
         spur = float(v.get("spur_miles", 0) or 0)
 
         f["mile"] = round(mp, 1)
-        geom_mile = calibrate(mono, mp) + nudge.get(f["name"], 0.0)
-        lat, lng = point_at_mile(centerline, geom_mile)
         old = (f["lat"], f["lng"])
+
+        # If the existing coordinate ALREADY lands on the road and agrees with the
+        # milepost, it is real survey-grade data - keep it and just snap it flush to
+        # the line. Only features whose coordinate is demonstrably wrong get rebuilt
+        # from the milepost. Off-Parkway destinations are always rebuilt, because we
+        # want the marker at the Parkway access point, not out on the spur.
+        best, dist = nearest_point(centerline, old[0], old[1])
+        trusted = (
+            placement != "off_parkway"
+            and dist <= TRUST_RADIUS_MI
+            and abs(best["mile"] - mp) <= MAX_ANCHOR_DRIFT_MI
+        )
+        if trusted:
+            lat, lng = snap_to_polyline(centerline, old[0], old[1])
+            kept.append(f["name"])
+        else:
+            geom_mile = calibrate(mono, mp) + nudge.get(f["name"], 0.0)
+            lat, lng = point_at_mile(centerline, geom_mile)
+            lat, lng = snap_to_polyline(centerline, lat, lng)
         f["lat"] = round(lat, 5)
         f["lng"] = round(lng, 5)
 
@@ -148,13 +214,22 @@ def main():
         moved.append((hav(old[0], old[1], f["lat"], f["lng"]), f["name"]))
 
     # verify every feature now lies on the road
-    worst = 0.0
+    worst, worst_name = 0.0, ""
     for f in features:
-        _, dist = nearest_point(centerline, f["lat"], f["lng"])
-        worst = max(worst, dist)
-    print(f"max distance from road after placement: {worst * 5280:.0f} ft")
-    if worst > 0.05:
-        sys.exit(f"ERROR: a feature is still {worst:.2f} mi off the road")
+        px, py = snap_to_polyline(centerline, f["lat"], f["lng"])
+        dist = hav(f["lat"], f["lng"], px, py)
+        if dist > worst:
+            worst, worst_name = dist, f["name"]
+    print(f"max distance from the road line: {worst * 5280:.1f} ft ({worst_name})")
+    if worst * 5280 > 60:
+        sys.exit(f"ERROR: {worst_name} is {worst * 5280:.0f} ft off the road line")
+
+    same = {}
+    for f in features:
+        same.setdefault((f["lat"], f["lng"]), []).append(f["name"])
+    stacked = [v for v in same.values() if len(v) > 1]
+    if stacked:
+        sys.exit(f"ERROR: markers share an exact position: {stacked}")
 
     # mileposts must stay ordered
     for key in ("pois", "junctions"):
